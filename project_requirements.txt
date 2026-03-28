@@ -1,0 +1,77 @@
+Project: RecoverAI (HC-01) - Intelligent Post-Discharge Care Companion
+Objective: A working prototype demonstrating data flow from a patient logging daily vitals to a caregiver dashboard that flags health anomalies.
+
+MVP Scope (Strict):
+
+Patient App (Frontend): A form to log daily pain level (1-10), mobility status, and symptoms (Headache, Nausea, Fever). Includes an SOS button.
+
+Caregiver Dashboard (Frontend): A grid view of assigned patients. Highlights patients in "Red" if their vitals show a negative trend or if SOS is triggered.
+
+Prediction Engine (Backend): An Express controller that evaluates incoming patient data. If pain > 7 or SOS == true, it flags the patient's status as 'Critical'.
+
+// 1. User Schema (Handles both Patients and Caregivers for simplicity)
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  role: { type: String, enum: ['PATIENT', 'CAREGIVER'], required: true },
+  assignedCaregiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Only for patients
+  status: { type: String, enum: ['STABLE', 'REVIEW', 'CRITICAL'], default: 'STABLE' }
+}, { timestamps: true });
+
+// 2. VitalsLog Schema (The core time-series data)
+const vitalsLogSchema = new mongoose.Schema({
+  patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  painLevel: { type: Number, min: 1, max: 10, required: true },
+  mobility: { type: String, enum: ['GOOD', 'FAIR', 'POOR'], required: true },
+  symptoms: [{ type: String }], // e.g., ['Headache', 'Fever']
+  isSOS: { type: Boolean, default: false }
+}, { timestamps: true }); // timestamps automatically handle the 'when' for our time-series logic
+
+Phase 1: The Backend (Data & Logic)
+Task 1: Let's build the Express backend foundation.
+
+Provide the package.json dependencies I need to install for a basic Node/Express/Mongoose server with CORS enabled.
+
+Write the server.js file to initialize Express, connect to MongoDB (using a generic process.env.MONGO_URI), and set up middleware.
+
+Create the exact Mongoose models (models/User.js and models/VitalsLog.js) using the schemas from the Requirements File.
+Do not write any API routes yet. Just give me the setup and models.
+
+Task 2: The Core API & Prediction Logic
+Task 2: Now, write the API controllers and routes (routes/api.js). We need exactly two endpoints:
+
+POST /api/vitals: Accepts the patient's vitals (patientId, painLevel, mobility, symptoms, isSOS).
+CRITICAL LOGIC: When this POST request comes in, save the VitalsLog. Then, evaluate the data. If painLevel > 7 OR isSOS === true, automatically update the corresponding User's status to 'CRITICAL'. Otherwise, if pain is low and no SOS, set it to 'STABLE'.
+
+GET /api/patients: Returns a list of all users where role === 'PATIENT', including their current status.
+Provide the code for the routes and controllers. Keep it in one file for simplicity.
+
+Phase 2: The Frontend (Next.js & UI)
+Only start this phase after your Express server is running on localhost and you have tested the POST route via Postman or cURL.
+
+Task 3: Patient Logging Interface
+
+Task 3: Let's build the Next.js Frontend (App Router).
+Create a client component for the Patient Vitals Form (app/patient/page.jsx).
+Requirements:
+
+A clean, mobile-friendly form using Tailwind CSS.
+
+Inputs: Slider or buttons for Pain Level (1-10), Dropdown for Mobility, Checkboxes for Symptoms (Headache, Nausea, Fever).
+
+A massive, highly visible red "SOS" button.
+
+A submit button that sends the JSON payload to our POST /api/vitals endpoint (assume the backend is running on http://localhost:5000).
+
+Use Lucide React for basic icons.
+
+ Task 4: The Caregiver Dashboard (The Winning Feature)
+
+Task 4: Create the Caregiver Dashboard (app/dashboard/page.jsx).
+Requirements:
+
+Fetch the list of patients from GET /api/patients on component mount (use useEffect and standard polling every 5 seconds for this prototype).
+
+Display the patients in a CSS Grid of cards.
+
+CRITICAL UI: If a patient's status === 'CRITICAL', the card's background must be a stark, pulsing red, and an alert icon must be visible. If 'STABLE', make it a calm green or white.
+Keep the UI modern, clinical, and strictly functional
