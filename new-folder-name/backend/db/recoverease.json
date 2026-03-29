@@ -1,0 +1,54 @@
+{
+  "users": [
+    {
+      "id": "1774779730836",
+      "name": "Sakshi P",
+      "email": "sakshi@gmail.com",
+      "passwordHash": "$2b$10$p32lhBwnUpBu9BkxpnjzcunEIV8uxWyMWl8lOWDFkDracdmCNwgEm",
+      "role": "patient",
+      "patientId": "RE-S9KB-10NO",
+      "createdAt": "2026-03-29T10:22:10.836Z"
+    },
+    {
+      "id": "1774779865652",
+      "name": "Vidushi S",
+      "email": "vidushi@gmail.com",
+      "passwordHash": "$2b$10$dKuo9jmDMP8IdQIN7ZD1nOti1NO9y3vahf4EreaEximK99ztL.2VS",
+      "role": "patient",
+      "patientId": "RE-LY2B-3WOK",
+      "createdAt": "2026-03-29T10:24:25.652Z"
+    }
+  ],
+  "patients": [
+    {
+      "id": "RE-S9KB-10NO",
+      "patientId": "RE-S9KB-10NO",
+      "name": "Sakshi P",
+      "age": "56",
+      "email": "sakshi@gmail.com",
+      "conditionType": "general",
+      "recoveryStage": "2",
+      "caregiverName": "Sakshi",
+      "caregiverPhone": "4335456546",
+      "dietaryPref": "veg",
+      "updatedAt": "2026-03-29T10:22:50.731Z",
+      "joinedAt": "2026-03-29T10:22:50.731Z"
+    },
+    {
+      "id": "RE-LY2B-3WOK",
+      "patientId": "RE-LY2B-3WOK",
+      "name": "Vidushi S",
+      "age": "9",
+      "email": "vidushi@gmail.com",
+      "conditionType": "general",
+      "recoveryStage": "1",
+      "caregiverName": "",
+      "caregiverPhone": "",
+      "dietaryPref": "both",
+      "updatedAt": "2026-03-29T10:31:51.120Z",
+      "joinedAt": "2026-03-29T10:25:06.532Z"
+    }
+  ],
+  "symptomLogs": [],
+  "recoveryPlans": []
+}
