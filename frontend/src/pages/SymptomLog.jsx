@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore'
 import { analyzeSymptoms } from '../lib/alertEngine'
 import { calculateRecoveryScore } from '../lib/recoveryEngine'
 import AlertBadge from '../components/AlertBadge'
+import VoiceVitalsForm from '../components/VoiceVitalsForm'
 import { Thermometer, Activity, Wind, Droplets, Brain, Zap } from 'lucide-react'
 
 const defaultSymptoms = {
@@ -24,11 +25,13 @@ export default function SymptomLog() {
 
   const update = (field, value) => setSymptoms((s) => ({ ...s, [field]: value }))
 
-  const handleSubmit = () => {
-    const alert = analyzeSymptoms(symptoms)
+  // Accepts an explicit symptoms object — bypasses React's async setState
+  const submitWithSymptoms = (overrideSymptoms) => {
+    const finalSymptoms = { ...symptoms, ...overrideSymptoms }
+    const alert = analyzeSymptoms(finalSymptoms)
     const log = {
       id: Date.now().toString(),
-      symptoms,
+      symptoms: finalSymptoms,
       alert,
       loggedAt: new Date().toISOString(),
     }
@@ -39,6 +42,8 @@ export default function SymptomLog() {
     setResult(alert)
     setSubmitted(true)
   }
+
+  const handleSubmit = () => submitWithSymptoms({})
 
   const reset = () => {
     setSymptoms(defaultSymptoms)
@@ -100,6 +105,28 @@ export default function SymptomLog() {
         <h2 className="text-2xl font-bold text-slate-800">Log Symptoms</h2>
         <p className="text-slate-500 text-sm mt-1">How are you feeling today?</p>
       </div>
+
+      {/* ── Voice Input ───────────────────────────── */}
+      <VoiceVitalsForm
+        onSave={(payload) => {
+          const p = payload.parsedVoice
+          // Build a COMPLETE symptom override from voice — no stale state
+          const voiceSymptoms = {}
+          if (payload.painLevel != null)          voiceSymptoms.painLevel          = payload.painLevel
+          if (p) {
+            if (p.nausea    !== 'none')            voiceSymptoms.nausea             = p.nausea
+            if (p.fatigue   !== 'none')            voiceSymptoms.fatigue            = p.fatigue
+            if (p.breathingDifficulty !== 'none') voiceSymptoms.breathingDifficulty = p.breathingDifficulty
+            if (p.bleeding  !== 'none')            voiceSymptoms.bleeding           = p.bleeding
+            if (p.swelling  !== 'none')            voiceSymptoms.swelling           = p.swelling
+            if (p.consciousness === 'confused')    voiceSymptoms.consciousness      = 'confused'
+            if (p.temperature != null)             voiceSymptoms.temperature        = p.temperature
+          }
+          // submitWithSymptoms merges over current state synchronously
+          submitWithSymptoms(voiceSymptoms)
+        }}
+      />
+      <p className="text-center text-slate-400 text-xs tracking-wide">— or fill in manually below —</p>
 
       {/* Temperature */}
       <div className="card">

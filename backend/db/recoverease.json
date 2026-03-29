@@ -17,6 +17,15 @@
       "role": "patient",
       "patientId": "RE-LY2B-3WOK",
       "createdAt": "2026-03-29T10:24:25.652Z"
+    },
+    {
+      "id": "1774791830504",
+      "name": "piyush",
+      "email": "kandharipiyush.work@gmail.com",
+      "passwordHash": "$2b$10$WDcbpDfGHZ9arbaX6I/CD.OlFi6lZVNHxBl3N3pMbIUnBRYT4I75a",
+      "role": "patient",
+      "patientId": "RE-DPBM-8CTK",
+      "createdAt": "2026-03-29T13:43:50.504Z"
     }
   ],
   "patients": [
@@ -47,6 +56,20 @@
       "dietaryPref": "both",
       "updatedAt": "2026-03-29T10:31:51.120Z",
       "joinedAt": "2026-03-29T10:25:06.532Z"
+    },
+    {
+      "id": "RE-DPBM-8CTK",
+      "patientId": "RE-DPBM-8CTK",
+      "name": "piyush",
+      "age": "20",
+      "email": "kandharipiyush.work@gmail.com",
+      "conditionType": "general",
+      "recoveryStage": "1",
+      "caregiverName": "ram",
+      "caregiverPhone": "8999254894",
+      "dietaryPref": "both",
+      "updatedAt": "2026-03-29T13:44:25.080Z",
+      "joinedAt": "2026-03-29T13:44:25.080Z"
     }
   ],
   "symptomLogs": [],
