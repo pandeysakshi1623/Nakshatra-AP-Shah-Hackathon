@@ -1,29 +1,57 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore'
+import { useAuthStore } from '../lib/authStore'
 import { generateRecoveryPlan } from '../lib/recoveryEngine'
 import { CONDITIONS } from '../lib/recoveryEngine'
-import { ChevronRight, Heart } from 'lucide-react'
-
-const STEPS = ['welcome', 'profile', 'condition', 'caregiver']
+import { generatePatientId } from '../lib/patientId'
+import { api } from '../lib/api'
+import { ChevronRight, Heart, Copy, Check } from 'lucide-react'
 
 export default function Onboarding() {
   const navigate = useNavigate()
   const { setPatient, setRecoveryPlan, setRecoveryScore } = useStore()
+  const { setRole, authUser } = useAuthStore()
   const [step, setStep] = useState(0)
+  const [copied, setCopied] = useState(false)
+  // Use patientId from auth signup if available, otherwise generate one
+  const [generatedId] = useState(() => authUser?.patientId || generatePatientId())
   const [form, setForm] = useState({
-    name: '', age: '', conditionType: 'general', recoveryStage: '1',
-    caregiverName: '', caregiverPhone: '',
+    name: authUser?.name || '',
+    age: '', conditionType: 'general', recoveryStage: '1',
+    caregiverName: '', caregiverPhone: '', dietaryPref: 'both',
   })
 
   const update = (field, value) => setForm((f) => ({ ...f, [field]: value }))
 
-  const finish = () => {
-    const patient = { ...form, id: Date.now().toString(), joinedAt: new Date().toISOString() }
+  const copyId = () => {
+    navigator.clipboard.writeText(generatedId).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const finish = async () => {
+    const patient = {
+      ...form,
+      id: generatedId,
+      patientId: generatedId,
+      email: authUser?.email,
+      joinedAt: new Date().toISOString(),
+    }
     const plan = generateRecoveryPlan(patient)
     setPatient(patient)
     setRecoveryPlan(plan)
     setRecoveryScore(50)
+    setRole('patient')
+
+    // Persist to backend so doctors can find this patient by ID
+    try {
+      await api.savePatient(patient)
+    } catch (e) {
+      // Backend offline — data stays in localStorage, that's fine for hackathon
+      console.warn('[onboarding] backend save failed, continuing offline:', e.message)
+    }
+
     navigate('/home')
   }
 
@@ -122,12 +150,54 @@ export default function Onboarding() {
                 <input className="input-field" type="tel" placeholder="e.g. +1 555 0100" value={form.caregiverPhone}
                   onChange={(e) => update('caregiverPhone', e.target.value)} />
               </div>
+              <div>
+                <label className="label">Dietary Preference</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 'veg', label: '🥦 Vegetarian' },
+                    { value: 'nonveg', label: '🍗 Non-Veg' },
+                    { value: 'both', label: '🍽️ Both' },
+                  ].map((opt) => (
+                    <button key={opt.value} onClick={() => update('dietaryPref', opt.value)}
+                      className={`py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                        form.dietaryPref === opt.value
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-slate-200 text-slate-600'
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <button className="btn-primary mt-6" onClick={finish}>
-              Start My Recovery 🎉
+            <button className="btn-primary mt-6" onClick={() => setStep(4)}>
+              Continue <ChevronRight className="inline" size={20} />
             </button>
-            <button className="btn-secondary mt-3" onClick={finish}>
+            <button className="btn-secondary mt-3" onClick={() => setStep(4)}>
               Skip for now
+            </button>
+          </div>
+        )}
+
+        {/* Patient ID */}
+        {step === 4 && (
+          <div className="bg-white rounded-3xl p-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-1">Your Patient ID</h2>
+            <p className="text-slate-500 mb-6">Share this ID with your doctor to connect your records.</p>
+            <div className="bg-primary-50 border-2 border-primary-200 rounded-2xl p-5 text-center mb-4">
+              <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wider">Your Unique ID</p>
+              <p className="text-3xl font-bold text-primary-700 tracking-widest">{generatedId}</p>
+            </div>
+            <button onClick={copyId}
+              className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl transition-all mb-4">
+              {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+              {copied ? 'Copied!' : 'Copy ID'}
+            </button>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
+              <p className="text-amber-700 text-sm">⚠️ Save this ID. Your doctor will use it to access your health records.</p>
+            </div>
+            <button className="btn-primary" onClick={finish}>
+              Start My Recovery 🎉
             </button>
           </div>
         )}
@@ -135,7 +205,7 @@ export default function Onboarding() {
         {/* Step dots */}
         {step > 0 && (
           <div className="flex justify-center gap-2 mt-6">
-            {[1,2,3].map((s) => (
+            {[1,2,3,4].map((s) => (
               <div key={s} className={`w-2.5 h-2.5 rounded-full transition-all ${step >= s ? 'bg-white' : 'bg-white/30'}`} />
             ))}
           </div>
