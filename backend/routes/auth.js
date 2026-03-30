@@ -9,8 +9,9 @@ import jwt from 'jsonwebtoken'
 import { db } from '../db/schema.js'
 
 const router = Router()
-const JWT_SECRET = process.env.JWT_SECRET || 'recoverease-hackathon-secret'
-const SALT_ROUNDS = 10
+const JWT_SECRET  = process.env.JWT_SECRET  || 'recoverease-dev-secret-change-in-production'
+const JWT_EXPIRES = process.env.JWT_EXPIRES_IN || '7d'
+const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ function signToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: JWT_EXPIRES }
   )
 }
 

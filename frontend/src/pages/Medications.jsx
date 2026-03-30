@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
+import { useAuthStore } from '../lib/authStore'
 import { Plus, Trash2, CheckCircle2, XCircle, Bell, Clock } from 'lucide-react'
 
 const TIME_OPTIONS = [
@@ -11,7 +12,8 @@ const TIME_OPTIONS = [
 ]
 
 export default function Medications() {
-  const { medications, addMedication, deleteMedication, markMedicationTaken, markMedicationMissed } = useStore()
+  const { medications, addMedication, deleteMedication, markMedicationTaken, markMedicationMissed, patient } = useStore()
+  const { addCaregiverAlert } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', dosage: '', time: 'morning', notes: '' })
 
@@ -22,6 +24,17 @@ export default function Medications() {
     addMedication(form)
     setForm({ name: '', dosage: '', time: 'morning', notes: '' })
     setShowForm(false)
+  }
+
+  const handleMissed = (med) => {
+    markMedicationMissed(med.id)
+    // Notify caregiver when a med is skipped
+    addCaregiverAlert({
+      type: 'missed_med',
+      message: `💊 ${patient?.name || 'Patient'} skipped "${med.name}" (${med.dosage || med.time}).`,
+      patientName: patient?.name || 'Unknown',
+      patientId: patient?.patientId || patient?.id,
+    })
   }
 
   const takenCount = medications.filter((m) => m.takenToday).length
@@ -156,7 +169,7 @@ export default function Medications() {
                     <CheckCircle2 size={18} /> Taken
                   </button>
                   <button
-                    onClick={() => markMedicationMissed(med.id)}
+                    onClick={() => handleMissed(med)}
                     className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 rounded-xl transition-all active:scale-95"
                   >
                     <XCircle size={18} /> Skip

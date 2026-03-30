@@ -13,7 +13,7 @@ export default function RoleSelect() {
     if (role === 'doctor') {
       navigate('/doctor/login')
     } else if (role === 'caregiver') {
-      navigate('/caregiver')
+      navigate('/caregiver/auth')
     } else {
       // Patient: go to auth page (login/signup), then home or onboarding
       navigate('/patient/auth')

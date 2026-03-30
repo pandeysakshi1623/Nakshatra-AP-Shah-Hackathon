@@ -11,12 +11,12 @@ import CaregiverDashboard from './pages/CaregiverDashboard'
 import DailyPlan from './pages/DailyPlan'
 import MealsExercise from './pages/MealsExercise'
 import Medications from './pages/Medications'
-import Notes from './pages/Notes'
-import DoctorLogin from './pages/DoctorLogin'
 import DoctorDashboard from './pages/DoctorDashboard'
+import DoctorLogin from './pages/DoctorLogin'
 import DoctorReports from './pages/DoctorReports'
 import PatientLayout from './components/PatientLayout'
 import CaregiverLayout from './components/CaregiverLayout'
+import CaregiverAuth from './pages/CaregiverAuth'
 
 export default function App() {
   const { patient } = useStore()

@@ -50,6 +50,14 @@ export default function SOSButton() {
     }
     addSosEvent(event)
 
+    // Also push a caregiver alert so it shows on caregiver dashboard
+    useAuthStore.getState().addCaregiverAlert({
+      type: 'sos',
+      message: `🚨 SOS triggered by ${patient?.name || 'patient'}! Immediate attention required.`,
+      patientName: patient?.name || 'Unknown',
+      patientId: patient?.patientId || patient?.id,
+    })
+
     // Simulate alarm sound via Web Audio API
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)()
