@@ -133,6 +133,28 @@ export const useAuthStore = create(
             ...state.sosEvents,
           ].slice(0, 10),
         })),
+
+      // ── Caregiver: which patient they are monitoring ───────────────────────
+      caregiverPatientId: null,
+      setCaregiverPatientId: (id) => set({ caregiverPatientId: id }),
+
+      // ── Caregiver alerts (missed meds + SOS) ──────────────────────────────
+      // Array of { id, type: 'missed_med'|'sos', message, patientName, createdAt, read }
+      caregiverAlerts: [],
+      addCaregiverAlert: (alert) =>
+        set((state) => ({
+          caregiverAlerts: [
+            { ...alert, id: Date.now().toString(), createdAt: new Date().toISOString(), read: false },
+            ...state.caregiverAlerts,
+          ].slice(0, 30),
+        })),
+      markCaregiverAlertRead: (id) =>
+        set((state) => ({
+          caregiverAlerts: state.caregiverAlerts.map((a) =>
+            a.id === id ? { ...a, read: true } : a
+          ),
+        })),
+      clearCaregiverAlerts: () => set({ caregiverAlerts: [] }),
     }),
     { name: 'recoverease-auth' }
   )

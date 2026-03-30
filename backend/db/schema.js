@@ -1,16 +1,15 @@
+import 'dotenv/config'
 import { JSONFilePreset } from 'lowdb/node'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { dirname, join, resolve } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-/**
- * Database collections:
- *  users        — registered accounts (patients, caregivers, doctors)
- *  patients     — patient profiles (linked to a user by userId)
- *  symptomLogs  — symptom entries per patient
- *  recoveryPlans
- */
+// DB path from env, default to ./db/recoverease.json
+const dbPath = process.env.DB_PATH
+  ? resolve(__dirname, '..', process.env.DB_PATH)
+  : join(__dirname, 'recoverease.json')
+
 const defaultData = {
   users: [],
   patients: [],
@@ -18,4 +17,4 @@ const defaultData = {
   recoveryPlans: [],
 }
 
-export const db = await JSONFilePreset(join(__dirname, 'recoverease.json'), defaultData)
+export const db = await JSONFilePreset(dbPath, defaultData)

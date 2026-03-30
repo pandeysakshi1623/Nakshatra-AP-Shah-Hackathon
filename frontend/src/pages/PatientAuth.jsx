@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../lib/authStore'
 import { useStore } from '../store/useStore'
+import { api } from '../lib/api'
+import { generateRecoveryPlan } from '../lib/recoveryEngine'
 import { Heart, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
 export default function PatientAuth() {
   const navigate = useNavigate()
   const { signup, loginUser, setRole } = useAuthStore()
-  const { patient } = useStore()
+  const { patient, setPatient, setRecoveryPlan, setRecoveryScore } = useStore()
 
-  const [mode, setMode] = useState('login')   // 'login' | 'signup'
+  const [mode, setMode] = useState('login')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,8 +19,36 @@ export default function PatientAuth() {
 
   const update = (f, v) => setForm((s) => ({ ...s, [f]: v }))
 
+  // After a successful login, try to restore the patient profile from DB.
+  // Returns true if profile was found and restored, false if onboarding needed.
+  const restorePatientProfile = async (user) => {
+    // Already have profile in localStorage (same device)
+    if (patient) return true
+
+    // Try fetching from backend using patientId from the auth user
+    if (user?.patientId) {
+      try {
+        const profileFromDB = await api.getPatient(user.patientId)
+        if (profileFromDB && profileFromDB.name) {
+          // Restore profile + generate a recovery plan from it
+          const plan = generateRecoveryPlan(profileFromDB)
+          setPatient(profileFromDB)
+          setRecoveryPlan(plan)
+          setRecoveryScore(50)
+          return true
+        }
+      } catch {
+        // Patient profile not in DB yet — needs onboarding
+      }
+    }
+
+    return false
+  }
+
   const handleSubmit = async () => {
     setError('')
+
+    // ── Validation ──────────────────────────────────────────────────────────
     if (!form.email || !form.password) {
       setError('Email and password are required.')
       return
@@ -35,26 +65,38 @@ export default function PatientAuth() {
     setLoading(true)
     try {
       let result
+
       if (mode === 'signup') {
         result = await signup(form.name, form.email, form.password, 'patient')
       } else {
         result = await loginUser(form.email, form.password)
       }
 
+      // ── Auth failed ─────────────────────────────────────────────────────
       if (!result.success) {
         setError(result.error)
         return
       }
 
-      // If the user already has a patient profile in localStorage, go home
-      // Otherwise go to onboarding to complete their profile
-      if (patient) {
-        navigate('/home')
+      // ── Auth succeeded ──────────────────────────────────────────────────
+      const loggedInUser = result.user
+
+      if (mode === 'login') {
+        // Try to restore existing patient profile from DB
+        const hasProfile = await restorePatientProfile(loggedInUser)
+        if (hasProfile) {
+          navigate('/home')
+        } else {
+          // First time logging in — profile not set up yet
+          setRole('patient')
+          navigate('/onboarding')
+        }
       } else {
+        // Signup always goes to onboarding (new account, no profile yet)
         setRole('patient')
         navigate('/onboarding')
       }
-    } catch (e) {
+    } catch {
       setError('Something went wrong. Is the backend running?')
     } finally {
       setLoading(false)
@@ -97,7 +139,7 @@ export default function PatientAuth() {
             </button>
           </div>
 
-          {/* Name (signup only) */}
+          {/* Name — signup only */}
           {mode === 'signup' && (
             <div>
               <label className="label">Full Name</label>
@@ -135,7 +177,7 @@ export default function PatientAuth() {
             </div>
           </div>
 
-          {/* Error */}
+          {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3">
               <p className="text-red-600 text-sm font-medium">{error}</p>
@@ -153,13 +195,23 @@ export default function PatientAuth() {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account →' : 'Log In →'}
+            {loading
+              ? 'Please wait...'
+              : mode === 'signup'
+              ? 'Create Account →'
+              : 'Log In →'}
           </button>
 
-          {/* Offline fallback — always visible, highlighted when backend is down */}
-          <div className={`rounded-2xl p-4 text-center space-y-2 ${error?.includes('Backend') ? 'bg-primary-50 border-2 border-primary-200' : 'border-t border-slate-100 pt-3'}`}>
+          {/* Offline fallback */}
+          <div className={`rounded-2xl p-4 text-center space-y-2 ${
+            error?.includes('Backend')
+              ? 'bg-primary-50 border-2 border-primary-200'
+              : 'border-t border-slate-100 pt-3'
+          }`}>
             <p className="text-slate-500 text-xs">
-              {error?.includes('Backend') ? '👇 Use this to continue without a backend:' : 'No backend? Use quick setup:'}
+              {error?.includes('Backend')
+                ? '👇 Use this to continue without a backend:'
+                : 'No backend? Use quick setup:'}
             </p>
             <button
               onClick={() => { setRole('patient'); navigate('/onboarding') }}

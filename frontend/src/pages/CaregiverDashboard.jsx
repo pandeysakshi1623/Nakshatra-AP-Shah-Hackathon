@@ -2,14 +2,18 @@ import { useStore } from '../store/useStore'
 import AlertBadge from '../components/AlertBadge'
 import RecoveryScoreRing from '../components/RecoveryScoreRing'
 import { generateInsights, INSIGHT_CONFIG } from '../lib/aiInsightEngine'
+import { useAuthStore } from '../lib/authStore'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { User, Phone, Calendar, TrendingUp, Pill, PenLine, ArrowLeft } from 'lucide-react'
+import { User, Phone, Calendar, TrendingUp, Pill, PenLine, ArrowLeft, Bell, BellOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function CaregiverDashboard() {
   const navigate = useNavigate()
   const { patient, symptomLogs, latestAlert, recoveryScore, recoveryPlan, medications, notes } = useStore()
+  const { caregiverAlerts, markCaregiverAlertRead, clearCaregiverAlerts } = useAuthStore()
   const insights = generateInsights(patient, symptomLogs, medications, notes)
+
+  const unreadAlerts = caregiverAlerts.filter((a) => !a.read)
 
   if (!patient) {
     return (
@@ -48,6 +52,58 @@ export default function CaregiverDashboard() {
         <h2 className="text-2xl font-bold text-slate-800">Caregiver Dashboard</h2>
         <p className="text-slate-500 text-sm mt-1">Remote patient monitoring</p>
       </div>
+
+      {/* ── Caregiver Alerts (missed meds + SOS) ─────────────────────────── */}
+      {caregiverAlerts.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-bold text-red-600 flex items-center gap-1">
+              <Bell size={14} />
+              ALERTS
+              {unreadAlerts.length > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">
+                  {unreadAlerts.length}
+                </span>
+              )}
+            </p>
+            <button onClick={clearCaregiverAlerts}
+              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
+              <BellOff size={12} /> Clear all
+            </button>
+          </div>
+          <div className="space-y-2">
+            {caregiverAlerts.slice(0, 10).map((alert) => (
+              <div
+                key={alert.id}
+                onClick={() => markCaregiverAlertRead(alert.id)}
+                className={`rounded-2xl border-2 p-4 cursor-pointer transition-all ${
+                  alert.type === 'sos'
+                    ? 'bg-red-50 border-red-300'
+                    : 'bg-amber-50 border-amber-200'
+                } ${alert.read ? 'opacity-60' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className={`text-sm font-semibold ${
+                    alert.type === 'sos' ? 'text-red-700' : 'text-amber-700'
+                  }`}>
+                    {alert.message}
+                  </p>
+                  {!alert.read && (
+                    <span className={`shrink-0 w-2 h-2 rounded-full mt-1 ${
+                      alert.type === 'sos' ? 'bg-red-500' : 'bg-amber-500'
+                    }`} />
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  {new Date(alert.createdAt).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Patient info */}
       <div className="card">
