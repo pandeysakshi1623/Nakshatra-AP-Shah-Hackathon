@@ -44,6 +44,15 @@
       "role": "patient",
       "patientId": "RE-RLFK-OOI7",
       "createdAt": "2026-03-30T15:08:11.407Z"
+    },
+    {
+      "id": "1774890204057",
+      "name": "Vids",
+      "email": "2024.vidushi.singh@ves.ac.in",
+      "passwordHash": "$2b$10$IbCd2Y.SOFHd5kPmh6So9.RrnkCY27uM.iXtkrGxiRBKFsB/vxBwe",
+      "role": "patient",
+      "patientId": "RE-V54K-SUC9",
+      "createdAt": "2026-03-30T17:03:24.057Z"
     }
   ],
   "patients": [
@@ -102,6 +111,20 @@
       "dietaryPref": "veg",
       "updatedAt": "2026-03-30T15:11:50.189Z",
       "joinedAt": "2026-03-30T15:09:02.435Z"
+    },
+    {
+      "id": "RE-V54K-SUC9",
+      "patientId": "RE-V54K-SUC9",
+      "name": "Vids",
+      "age": "19",
+      "email": "2024.vidushi.singh@ves.ac.in",
+      "conditionType": "pneumonia",
+      "recoveryStage": "1",
+      "caregiverName": "Mary",
+      "caregiverPhone": "9371347877",
+      "dietaryPref": "veg",
+      "updatedAt": "2026-03-30T17:03:54.880Z",
+      "joinedAt": "2026-03-30T17:03:54.880Z"
     }
   ],
   "symptomLogs": [],

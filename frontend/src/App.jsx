@@ -11,6 +11,7 @@ import CaregiverDashboard from './pages/CaregiverDashboard'
 import DailyPlan from './pages/DailyPlan'
 import MealsExercise from './pages/MealsExercise'
 import Medications from './pages/Medications'
+import Notes from './pages/Notes'
 import DoctorDashboard from './pages/DoctorDashboard'
 import DoctorLogin from './pages/DoctorLogin'
 import DoctorReports from './pages/DoctorReports'
@@ -56,9 +57,19 @@ export default function App() {
         <Route path="/doctor-reports"element={patient ? <DoctorReports /> : <Navigate to="/patient/auth" replace />} />
       </Route>
 
+      {/* ── Caregiver auth ───────────────────────────────────────────────── */}
+      <Route path="/caregiver/auth" element={<CaregiverAuth />} />
+
       {/* ── Caregiver routes (inside CaregiverLayout) ───────────────────── */}
       <Route element={<CaregiverLayout />}>
-        <Route path="/caregiver" element={<CaregiverDashboard />} />
+        <Route
+          path="/caregiver"
+          element={
+            authUser && role === 'caregiver'
+              ? <CaregiverDashboard />
+              : <Navigate to="/caregiver/auth" replace />
+          }
+        />
       </Route>
 
       {/* ── Catch-all ───────────────────────────────────────────────────── */}
