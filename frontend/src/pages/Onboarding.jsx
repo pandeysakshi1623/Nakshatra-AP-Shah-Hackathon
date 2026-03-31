@@ -83,18 +83,18 @@ export default function Onboarding() {
             <p className="text-slate-500 mb-6">Tell us a little about yourself</p>
             <div className="space-y-4">
               <div>
-                <label className="label">Your Full Name</label>
-                <input className="input-field" placeholder="e.g. John Smith" value={form.name}
+                <label className="label-light">Your Full Name</label>
+                <input className="input-field-light" placeholder="e.g. John Smith" value={form.name}
                   onChange={(e) => update('name', e.target.value)} />
               </div>
               <div>
-                <label className="label">Your Age</label>
-                <input className="input-field" type="number" placeholder="e.g. 65" value={form.age}
+                <label className="label-light">Your Age</label>
+                <input className="input-field-light" type="number" placeholder="e.g. 65" value={form.age}
                   onChange={(e) => update('age', e.target.value)} />
               </div>
               <div>
-                <label className="label">Recovery Stage</label>
-                <select className="input-field" value={form.recoveryStage}
+                <label className="label-light">Recovery Stage</label>
+                <select className="input-field-light" value={form.recoveryStage}
                   onChange={(e) => update('recoveryStage', e.target.value)}>
                   <option value="1">Stage 1 — Just discharged (0–3 days)</option>
                   <option value="2">Stage 2 — Early recovery (4–14 days)</option>
@@ -141,17 +141,17 @@ export default function Onboarding() {
             <p className="text-slate-500 mb-6">Who should be notified if something's wrong? (optional)</p>
             <div className="space-y-4">
               <div>
-                <label className="label">Caregiver Name</label>
-                <input className="input-field" placeholder="e.g. Mary Smith" value={form.caregiverName}
+                <label className="label-light">Caregiver Name</label>
+                <input className="input-field-light" placeholder="e.g. Mary Smith" value={form.caregiverName}
                   onChange={(e) => update('caregiverName', e.target.value)} />
               </div>
               <div>
-                <label className="label">Caregiver Phone</label>
-                <input className="input-field" type="tel" placeholder="e.g. +1 555 0100" value={form.caregiverPhone}
+                <label className="label-light">Caregiver Phone</label>
+                <input className="input-field-light" type="tel" placeholder="e.g. +1 555 0100" value={form.caregiverPhone}
                   onChange={(e) => update('caregiverPhone', e.target.value)} />
               </div>
               <div>
-                <label className="label">Dietary Preference</label>
+                <label className="label-light">Dietary Preference</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { value: 'veg', label: '🥦 Vegetarian' },

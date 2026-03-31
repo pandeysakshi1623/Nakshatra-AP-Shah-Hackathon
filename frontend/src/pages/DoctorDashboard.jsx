@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../lib/authStore'
 import { useStore } from '../store/useStore'
@@ -209,14 +209,14 @@ function PatientDetailModal({ record, reports, onClose, onAddReport, doctorId })
               {/* Add report form */}
               <div className="card space-y-3 border-green-200 bg-green-50">
                 <p className="font-bold text-green-700 text-sm">Add Note / Report</p>
-                <select className="input-field text-sm" value={reportForm.type}
+                <select className="input-field-light text-sm" value={reportForm.type}
                   onChange={(e) => setReportForm((f) => ({ ...f, type: e.target.value }))}>
                   <option value="note">📝 Clinical Note</option>
                   <option value="prescription">💊 Prescription</option>
                   <option value="recommendation">✅ Recommendation</option>
                   <option value="report">📋 Lab Report</option>
                 </select>
-                <textarea className="input-field text-sm resize-none" rows={3}
+                <textarea className="input-field-light text-sm resize-none" rows={3}
                   placeholder="Enter your note, prescription, or recommendation..."
                   value={reportForm.content}
                   onChange={(e) => setReportForm((f) => ({ ...f, content: e.target.value }))} />
@@ -261,8 +261,8 @@ function PatientDetailModal({ record, reports, onClose, onAddReport, doctorId })
 
 export default function DoctorDashboard() {
   const navigate = useNavigate()
-  const { authUser, logout, doctorPatients, addPatientToDoctor, addDoctorReport, getDoctorReports } = useAuthStore()
-  const { patient: currentPatient, symptomLogs, medications, recoveryPlan, recoveryScore, notes } = useStore()
+  const { authUser, logout, doctorPatients, addPatientToDoctor, addDoctorReport, getDoctorReports, updatePatientRecord } = useAuthStore()
+  const { patient: currentPatient, symptomLogs, medications, recoveryPlan, recoveryScore, latestAlert, notes } = useStore()
 
   const [searchId, setSearchId] = useState('')
   const [searchResult, setSearchResult] = useState(null)
@@ -272,6 +272,43 @@ export default function DoctorDashboard() {
 
   const myPatients = doctorPatients[authUser?.id] || []
   const criticalPatients = myPatients.filter((p) => p.latestAlert?.level === 'critical')
+
+  // ── Sync patient data from useStore into doctor's records (same-device) ──
+  useEffect(() => {
+    if (!authUser || !currentPatient) return
+    const patId = currentPatient.patientId || currentPatient.id
+    const records = doctorPatients[authUser.id] || []
+    const match = records.find((r) => r.patientId === patId)
+    if (!match) return
+
+    // Get the freshest latestAlert from useStore
+    const storeState = useStore.getState()
+    const freshAlert = storeState.latestAlert
+    const freshScore = storeState.recoveryScore
+    const freshLogs = storeState.symptomLogs
+    const freshMeds = storeState.medications
+    const freshPlan = storeState.recoveryPlan
+
+    // Only update if something actually changed
+    const needs = (
+      JSON.stringify(match.latestAlert) !== JSON.stringify(freshAlert) ||
+      match.recoveryScore !== freshScore ||
+      (match.symptomLogs || []).length !== (freshLogs || []).length ||
+      (match.medications || []).length !== (freshMeds || []).length
+    )
+    if (needs) {
+      updatePatientRecord(authUser.id, patId, {
+        latestAlert: freshAlert,
+        recoveryScore: freshScore,
+        symptomLogs: (freshLogs || []).slice(0, 10),
+        medications: freshMeds || [],
+        medsTaken: (freshMeds || []).filter((m) => m.takenToday).length,
+        totalMeds: (freshMeds || []).length,
+        completedTasks: freshPlan?.tasks?.filter((t) => t.completed).length || 0,
+        totalTasks: freshPlan?.tasks?.length || 0,
+      })
+    }
+  }, [authUser, currentPatient, doctorPatients, latestAlert, symptomLogs, medications, recoveryScore])
 
   const handleSearch = async () => {
     setSearchError('')
@@ -314,7 +351,7 @@ export default function DoctorDashboard() {
         conditionLabel: recoveryPlan?.conditionLabel || currentPatient.conditionType,
         recoveryStage: currentPatient.recoveryStage,
         recoveryScore,
-        latestAlert: null,
+        latestAlert: latestAlert || null,
         symptomLogs: symptomLogs.slice(0, 10),
         medications,
         completedTasks: recoveryPlan?.tasks?.filter((t) => t.completed).length || 0,
@@ -400,7 +437,7 @@ export default function DoctorDashboard() {
             <p className="font-bold text-green-700">Search by Patient ID</p>
             <div className="flex gap-2">
               <input
-                className="input-field flex-1 text-sm"
+                className="input-field-light flex-1 text-sm"
                 placeholder="e.g. RE-ABCD-1X2Y"
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}

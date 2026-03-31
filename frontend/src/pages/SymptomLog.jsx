@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
+import { useAuthStore } from '../lib/authStore'
 import { analyzeSymptoms } from '../lib/alertEngine'
 import { calculateRecoveryScore } from '../lib/recoveryEngine'
 import AlertBadge from '../components/AlertBadge'
@@ -18,7 +19,8 @@ const defaultSymptoms = {
 }
 
 export default function SymptomLog() {
-  const { addSymptomLog, setLatestAlert, setRecoveryScore, symptomLogs } = useStore()
+  const { addSymptomLog, setLatestAlert, setRecoveryScore, symptomLogs, patient } = useStore()
+  const { doctorPatients, updatePatientRecord } = useAuthStore()
   const [symptoms, setSymptoms] = useState(defaultSymptoms)
   const [result, setResult] = useState(null)
   const [submitted, setSubmitted] = useState(false)
@@ -41,6 +43,23 @@ export default function SymptomLog() {
     setRecoveryScore(newScore)
     setResult(alert)
     setSubmitted(true)
+
+    // ── Propagate alert to every doctor watching this patient ──────────────
+    if (patient) {
+      const patId = patient.patientId || patient.id
+      Object.keys(doctorPatients).forEach((doctorId) => {
+        const records = doctorPatients[doctorId] || []
+        const match = records.find((r) => r.patientId === patId)
+        if (match) {
+          updatePatientRecord(doctorId, patId, {
+            latestAlert: alert,
+            recoveryScore: newScore,
+            // append log to doctor's view (keep last 10)
+            symptomLogs: [log, ...(match.symptomLogs || [])].slice(0, 10),
+          })
+        }
+      })
+    }
   }
 
   const handleSubmit = () => submitWithSymptoms({})
@@ -54,17 +73,17 @@ export default function SymptomLog() {
   if (submitted && result) {
     return (
       <div className="p-5 space-y-5">
-        <h2 className="text-2xl font-bold text-slate-800">Symptom Result</h2>
+        <h2 className="text-2xl font-bold text-white">Symptom Result</h2>
         <AlertBadge level={result.level} message={result.message} advice={result.advice} large />
 
         {result.level === 'critical' && (
-          <a href="tel:911" className="btn-primary bg-red-600 hover:bg-red-700 flex items-center justify-center gap-2 text-center">
+          <a href="tel:911" className="btn-primary flex items-center justify-center gap-2 text-center" style={{ background: 'linear-gradient(135deg,#ef4444,#b91c1c)' }}>
             📞 Call Emergency Now
           </a>
         )}
         {result.level === 'warning' && (
-          <div className="card bg-amber-50 border-amber-200">
-            <p className="text-amber-700 font-medium">Your caregiver has been notified.</p>
+          <div className="card-warning">
+            <p className="text-amber-300 font-medium">Your caregiver has been notified.</p>
           </div>
         )}
 
@@ -73,20 +92,20 @@ export default function SymptomLog() {
         {/* History */}
         {symptomLogs.length > 1 && (
           <div>
-            <p className="text-sm font-semibold text-slate-500 mb-2">PREVIOUS LOGS</p>
+            <p className="text-sm font-semibold text-white/40 mb-2">PREVIOUS LOGS</p>
             <div className="space-y-2">
               {symptomLogs.slice(1, 6).map((log) => (
                 <div key={log.id} className="card flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-700">
+                    <p className="text-sm font-medium text-white/80">
                       {new Date(log.loggedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <p className="text-xs text-slate-500">Pain: {log.symptoms.painLevel}/10 · {log.symptoms.temperature}°C</p>
+                    <p className="text-xs text-white/40">Pain: {log.symptoms.painLevel}/10 · {log.symptoms.temperature}°C</p>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                    log.alert?.level === 'critical' ? 'bg-red-100 text-red-600' :
-                    log.alert?.level === 'warning'  ? 'bg-amber-100 text-amber-600' :
-                    'bg-green-100 text-green-600'
+                  <span className={`badge ${
+                    log.alert?.level === 'critical' ? 'badge-critical' :
+                    log.alert?.level === 'warning'  ? 'badge-warning'  :
+                    'badge-normal'
                   }`}>
                     {log.alert?.level}
                   </span>
@@ -102,8 +121,8 @@ export default function SymptomLog() {
   return (
     <div className="p-5 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">Log Symptoms</h2>
-        <p className="text-slate-500 text-sm mt-1">How are you feeling today?</p>
+        <h2 className="text-2xl font-bold text-white">Log Symptoms</h2>
+        <p className="text-white/50 text-sm mt-1">How are you feeling today?</p>
       </div>
 
       {/* ── Voice Input ───────────────────────────── */}
@@ -126,7 +145,7 @@ export default function SymptomLog() {
           submitWithSymptoms(voiceSymptoms)
         }}
       />
-      <p className="text-center text-slate-400 text-xs tracking-wide">— or fill in manually below —</p>
+      <p className="text-center text-white/30 text-xs tracking-wide">— or fill in manually below —</p>
 
       {/* Temperature */}
       <div className="card">
@@ -184,9 +203,15 @@ export default function SymptomLog() {
         <div className="grid grid-cols-2 gap-2">
           {['none', 'mild', 'moderate', 'extreme'].map((v) => (
             <button key={v} onClick={() => update('fatigue', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize transition-all ${
-                symptoms.fatigue === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize transition-all ${
+                symptoms.fatigue === v
+                  ? 'text-white'
+                  : 'text-white/50'
+              }`}
+              style={symptoms.fatigue === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v}
             </button>
           ))}
@@ -201,9 +226,13 @@ export default function SymptomLog() {
         <div className="grid grid-cols-3 gap-2">
           {['none', 'mild', 'moderate', 'severe'].map((v) => (
             <button key={v} onClick={() => update('breathingDifficulty', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize text-sm transition-all ${
-                symptoms.breathingDifficulty === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize text-sm transition-all ${
+                symptoms.breathingDifficulty === v ? 'text-white' : 'text-white/50'
+              }`}
+              style={symptoms.breathingDifficulty === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v}
             </button>
           ))}
@@ -218,9 +247,13 @@ export default function SymptomLog() {
         <div className="grid grid-cols-3 gap-2">
           {['none', 'nausea', 'vomiting'].map((v) => (
             <button key={v} onClick={() => update('nausea', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize text-sm transition-all ${
-                symptoms.nausea === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize text-sm transition-all ${
+                symptoms.nausea === v ? 'text-white' : 'text-white/50'
+              }`}
+              style={symptoms.nausea === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v}
             </button>
           ))}
@@ -233,9 +266,13 @@ export default function SymptomLog() {
         <div className="grid grid-cols-3 gap-2">
           {['none', 'mild', 'significant'].map((v) => (
             <button key={v} onClick={() => update('swelling', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize text-sm transition-all ${
-                symptoms.swelling === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize text-sm transition-all ${
+                symptoms.swelling === v ? 'text-white' : 'text-white/50'
+              }`}
+              style={symptoms.swelling === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v}
             </button>
           ))}
@@ -248,9 +285,13 @@ export default function SymptomLog() {
         <div className="grid grid-cols-3 gap-2">
           {['none', 'minor', 'heavy'].map((v) => (
             <button key={v} onClick={() => update('bleeding', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize text-sm transition-all ${
-                symptoms.bleeding === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize text-sm transition-all ${
+                symptoms.bleeding === v ? 'text-white' : 'text-white/50'
+              }`}
+              style={symptoms.bleeding === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v}
             </button>
           ))}
@@ -265,9 +306,13 @@ export default function SymptomLog() {
         <div className="grid grid-cols-2 gap-2">
           {['normal', 'confused'].map((v) => (
             <button key={v} onClick={() => update('consciousness', v)}
-              className={`py-3 rounded-xl border-2 font-medium capitalize transition-all ${
-                symptoms.consciousness === v ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-600'
-              }`}>
+              className={`py-3 rounded-xl font-medium capitalize transition-all ${
+                symptoms.consciousness === v ? 'text-white' : 'text-white/50'
+              }`}
+              style={symptoms.consciousness === v
+                ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: '1.5px solid transparent' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.1)' }
+              }>
               {v === 'normal' ? '😊 Normal' : '😵 Confused'}
             </button>
           ))}

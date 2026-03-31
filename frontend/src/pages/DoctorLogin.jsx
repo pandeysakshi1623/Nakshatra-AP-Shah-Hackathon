@@ -38,13 +38,13 @@ export default function DoctorLogin() {
           </div>
 
           <div>
-            <label className="label">Email Address</label>
-            <input className="input-field" type="email" placeholder="doctor@hospital.com"
+            <label className="label-light">Email Address</label>
+            <input className="input-field-light" type="email" placeholder="doctor@hospital.com"
               value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
           </div>
           <div>
-            <label className="label">Password</label>
-            <input className="input-field" type="password" placeholder="••••••••"
+            <label className="label-light">Password</label>
+            <input className="input-field-light" type="password" placeholder="••••••••"
               value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
           </div>

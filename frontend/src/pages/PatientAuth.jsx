@@ -104,42 +104,38 @@ export default function PatientAuth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-700 flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <button onClick={() => navigate('/role')} className="text-white/70 flex items-center gap-2 mb-6 hover:text-white transition-colors">
-          <ArrowLeft size={18} /> Back
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute top-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full opacity-15 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #0ea5e9 0%, transparent 70%)' }} />
+
+      <div className="w-full max-w-md relative z-10">
+        <button onClick={() => navigate('/role')}
+          className="text-white/40 flex items-center gap-2 mb-6 hover:text-white/80 transition-colors text-sm font-medium">
+          <ArrowLeft size={16} /> Back
         </button>
 
-        <div className="text-center text-white mb-8">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Heart size={32} className="text-white" />
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', boxShadow: '0 0 30px rgba(14,165,233,0.4)' }}>
+            <Heart size={30} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold">Patient Portal</h1>
-          <p className="text-primary-100 mt-1">RecoverEase</p>
+          <h1 className="text-3xl font-black gradient-text">Patient Portal</h1>
+          <p className="text-white/30 text-sm mt-1">RecoverEase</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 space-y-4">
-          {/* Mode toggle */}
-          <div className="flex bg-slate-100 rounded-2xl p-1">
-            <button
-              onClick={() => { setMode('login'); setError('') }}
-              className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
-                mode === 'login' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => { setMode('signup'); setError('') }}
-              className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
-                mode === 'signup' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              Sign Up
-            </button>
+        <div className="rounded-3xl p-6 space-y-4"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)' }}>
+
+          <div className="flex rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            {['login', 'signup'].map((m) => (
+              <button key={m} onClick={() => { setMode(m); setError('') }}
+                className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all ${mode === m ? 'text-white' : 'text-white/35'}`}
+                style={mode === m ? { background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', boxShadow: '0 2px 12px rgba(14,165,233,0.3)' } : {}}>
+                {m === 'login' ? 'Log In' : 'Sign Up'}
+              </button>
+            ))}
           </div>
 
-          {/* Name — signup only */}
           {mode === 'signup' && (
             <div>
               <label className="label">Full Name</label>
@@ -148,14 +144,12 @@ export default function PatientAuth() {
             </div>
           )}
 
-          {/* Email */}
           <div>
             <label className="label">Email Address</label>
             <input className="input-field" type="email" placeholder="you@email.com"
               value={form.email} onChange={(e) => update('email', e.target.value)} />
           </div>
 
-          {/* Password */}
           <div>
             <label className="label">Password</label>
             <div className="relative">
@@ -167,61 +161,33 @@ export default function PatientAuth() {
                 onChange={(e) => update('password', e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
               />
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-              >
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors">
                 {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Error message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-              <p className="text-red-600 text-sm font-medium">{error}</p>
+            <div className="rounded-xl p-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <p className="text-red-400 text-sm font-medium">{error}</p>
               {error.includes('Backend') && (
-                <p className="text-red-400 text-xs mt-1">
-                  Run <code className="bg-red-100 px-1 rounded">cd backend && npm start</code> to enable accounts.
+                <p className="text-red-400/60 text-xs mt-1">
+                  Run <code className="bg-white/10 px-1 rounded">cd backend &amp;&amp; npm start</code>
                 </p>
               )}
             </div>
           )}
 
-          {/* Submit */}
-          <button
-            className="btn-primary"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading
-              ? 'Please wait...'
-              : mode === 'signup'
-              ? 'Create Account →'
-              : 'Log In →'}
+          <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account \u2192' : 'Log In \u2192'}
           </button>
 
-          {/* Offline fallback */}
-          <div className={`rounded-2xl p-4 text-center space-y-2 ${
-            error?.includes('Backend')
-              ? 'bg-primary-50 border-2 border-primary-200'
-              : 'border-t border-slate-100 pt-3'
-          }`}>
-            <p className="text-slate-500 text-xs">
-              {error?.includes('Backend')
-                ? '👇 Use this to continue without a backend:'
-                : 'No backend? Use quick setup:'}
-            </p>
-            <button
-              onClick={() => { setRole('patient'); navigate('/onboarding') }}
-              className={`w-full font-semibold text-sm py-3 rounded-xl transition-colors ${
-                error?.includes('Backend')
-                  ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'text-primary-600 hover:bg-primary-50'
-              }`}
-            >
-              Continue without account →
+          <div className="pt-2 text-center space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="text-white/25 text-xs">No backend? Continue as guest:</p>
+            <button onClick={() => { setRole('patient'); navigate('/onboarding') }}
+              className="w-full font-semibold text-sm py-2.5 rounded-xl transition-all text-primary-400 hover:text-primary-300 hover:bg-primary-500/10">
+              Continue without account \u2192
             </button>
           </div>
         </div>
@@ -229,3 +195,4 @@ export default function PatientAuth() {
     </div>
   )
 }
+

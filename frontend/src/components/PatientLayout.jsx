@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, ClipboardList, Activity, Users, MoreHorizontal } from 'lucide-react'
+import { Home, ClipboardList, Activity, Users, MoreHorizontal, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import SOSButton from './SOSButton'
@@ -24,23 +24,36 @@ export default function PatientLayout() {
   const [showMore, setShowMore] = useState(false)
 
   return (
-    <div className="min-h-screen flex flex-col max-w-md mx-auto bg-white shadow-xl">
+    <div className="min-h-screen flex flex-col max-w-md mx-auto" style={{ background: 'linear-gradient(180deg, #080c14 0%, #0f1624 100%)' }}>
       {/* Top bar */}
-      <header className="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">RecoverEase</h1>
-          {patient?.patientId && (
-            <p className="text-primary-200 text-xs font-mono">{patient.patientId}</p>
-          )}
+      <header className="px-5 py-4 flex items-center justify-between"
+        style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #0ea5e9, #8b5cf6)' }}>
+            <Heart size={15} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-base font-bold gradient-text">RecoverEase</h1>
+            {patient?.patientId && (
+              <p className="text-white/30 text-[10px] font-mono">{patient.patientId}</p>
+            )}
+          </div>
         </div>
         {latestAlert && (
-          <div className={`text-xs font-semibold px-3 py-1 rounded-full ${
-            latestAlert.level === 'critical' ? 'bg-red-500' :
-            latestAlert.level === 'warning'  ? 'bg-amber-400 text-amber-900' :
-            'bg-green-400 text-green-900'
+          <div className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${
+            latestAlert.level === 'critical'
+              ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+              : latestAlert.level === 'warning'
+              ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
           }`}>
-            {latestAlert.level === 'critical' ? '🚨 Critical' :
-             latestAlert.level === 'warning'  ? '⚠️ Warning' : '✅ Normal'}
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              latestAlert.level === 'critical' ? 'bg-red-400 animate-pulse' :
+              latestAlert.level === 'warning' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+            }`} />
+            {latestAlert.level === 'critical' ? 'Critical' :
+             latestAlert.level === 'warning' ? 'Warning' : 'Normal'}
           </div>
         )}
       </header>
@@ -49,18 +62,22 @@ export default function PatientLayout() {
       {showMore && (
         <div className="fixed inset-0 z-40" onClick={() => setShowMore(false)}>
           <div
-            className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-4 space-y-1"
+            className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-md rounded-t-3xl shadow-2xl p-5 space-y-1"
+            style={{ background: 'rgba(15,22,36,0.98)', borderTop: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs font-bold text-slate-400 px-2 mb-3">MORE FEATURES</p>
+            <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-4" />
+            <p className="text-xs font-bold text-white/25 px-2 mb-3 tracking-widest uppercase">More Features</p>
             {moreNav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 onClick={() => setShowMore(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                    isActive ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-50'
+                  `flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-primary-500/15 text-primary-400'
+                      : 'text-white/60 hover:bg-white/5 hover:text-white'
                   }`
                 }
               >
@@ -76,33 +93,42 @@ export default function PatientLayout() {
         <Outlet />
       </main>
 
-      {/* SOS button — patient only */}
+      {/* SOS button */}
       <SOSButton />
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-200 flex z-30">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex z-30"
+        style={{ background: 'rgba(8,12,20,0.92)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
         {primaryNav.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${
-                isActive ? 'text-primary-600' : 'text-slate-400'
+              `flex-1 flex flex-col items-center py-3.5 text-[10px] font-semibold transition-all ${
+                isActive ? 'text-primary-400' : 'text-white/25 hover:text-white/60'
               }`
             }
           >
-            <Icon size={22} />
-            <span className="mt-1">{label}</span>
+            {({ isActive }) => (
+              <>
+                <div className={`p-1.5 rounded-xl transition-all mb-0.5 ${isActive ? 'bg-primary-500/15' : ''}`}>
+                  <Icon size={20} />
+                </div>
+                <span>{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
         <button
           onClick={() => setShowMore(!showMore)}
-          className={`flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${
-            showMore ? 'text-primary-600' : 'text-slate-400'
+          className={`flex-1 flex flex-col items-center py-3.5 text-[10px] font-semibold transition-all ${
+            showMore ? 'text-primary-400' : 'text-white/25 hover:text-white/60'
           }`}
         >
-          <MoreHorizontal size={22} />
-          <span className="mt-1">More</span>
+          <div className={`p-1.5 rounded-xl mb-0.5 transition-all ${showMore ? 'bg-primary-500/15' : ''}`}>
+            <MoreHorizontal size={20} />
+          </div>
+          <span>More</span>
         </button>
       </nav>
     </div>

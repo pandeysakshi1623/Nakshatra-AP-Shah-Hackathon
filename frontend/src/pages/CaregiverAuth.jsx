@@ -168,9 +168,9 @@ export default function CaregiverAuth() {
               {/* Name — signup only */}
               {step === 'signup' && (
                 <div>
-                  <label className="label">Full Name</label>
+                  <label className="label-light">Full Name</label>
                   <input
-                    className="input-field"
+                    className="input-field-light"
                     type="text"
                     placeholder="Your full name"
                     value={form.name}
@@ -180,9 +180,9 @@ export default function CaregiverAuth() {
               )}
 
               <div>
-                <label className="label">Email Address</label>
+                <label className="label-light">Email Address</label>
                 <input
-                  className="input-field"
+                  className="input-field-light"
                   type="email"
                   placeholder="you@email.com"
                   value={form.email}
@@ -191,10 +191,10 @@ export default function CaregiverAuth() {
               </div>
 
               <div>
-                <label className="label">Password</label>
+                <label className="label-light">Password</label>
                 <div className="relative">
                   <input
-                    className="input-field pr-12"
+                    className="input-field-light pr-12"
                     type={showPw ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={form.password}
@@ -261,7 +261,7 @@ export default function CaregiverAuth() {
 
               <div className="flex gap-2">
                 <input
-                  className="input-field flex-1"
+                  className="input-field-light flex-1"
                   placeholder="e.g. RE-AB3C-1X2Y"
                   value={patientIdInput}
                   onChange={(e) => setPatientIdInput(e.target.value)}

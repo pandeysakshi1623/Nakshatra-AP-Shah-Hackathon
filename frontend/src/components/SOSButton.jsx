@@ -150,27 +150,41 @@ export default function SOSButton() {
   }
 
   return (
-    <div className="fixed bottom-24 right-4 z-40">
+    <div className="fixed bottom-28 right-4 z-40">
+      {/* Outer pulse ring */}
+      {!holding && (
+        <div className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
+          style={{ background: 'radial-gradient(circle, #ef4444, transparent)', margin: '-8px' }} />
+      )}
+
       <button
         onMouseDown={startHold}
         onMouseUp={cancelHold}
         onMouseLeave={cancelHold}
         onTouchStart={startHold}
         onTouchEnd={cancelHold}
-        className={`w-16 h-16 rounded-full shadow-2xl flex flex-col items-center justify-center transition-all select-none ${
-          holding
-            ? 'bg-red-700 scale-110 shadow-red-500/50'
-            : 'bg-red-500 hover:bg-red-600 active:scale-95'
+        className={`relative w-16 h-16 rounded-full flex flex-col items-center justify-center transition-all select-none ${
+          holding ? 'scale-110' : 'hover:scale-105 active:scale-95'
         }`}
+        style={{
+          background: holding
+            ? 'radial-gradient(circle, #b91c1c, #7f1d1d)'
+            : 'radial-gradient(circle, #ef4444, #dc2626)',
+          boxShadow: holding
+            ? '0 0 0 4px rgba(239,68,68,0.4), 0 0 40px rgba(239,68,68,0.8)'
+            : '0 0 0 3px rgba(239,68,68,0.3), 0 0 20px rgba(239,68,68,0.5)',
+        }}
       >
-        <AlertTriangle size={22} className="text-white" />
-        <span className="text-white text-xs font-bold mt-0.5">
+        <AlertTriangle size={20} className="text-white" />
+        <span className="text-white text-[10px] font-black mt-0.5 tracking-wide">
           {holding ? countdown : 'SOS'}
         </span>
       </button>
+
       {holding && (
-        <div className="absolute -top-8 right-0 bg-red-600 text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
-          Hold... {countdown}
+        <div className="absolute -top-10 right-0 text-white text-xs px-3 py-1.5 rounded-xl whitespace-nowrap font-bold"
+          style={{ background: 'rgba(239,68,68,0.9)', backdropFilter: 'blur(8px)' }}>
+          Hold... {countdown}s
         </div>
       )}
     </div>
